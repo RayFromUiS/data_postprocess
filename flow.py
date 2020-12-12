@@ -17,7 +17,8 @@ if __name__ == '__main__':
     create_table(engine)
     cate_file = 'input_data/categories_list.xlsx'
     df_dicts = read_xlsx(cate_file)
-    ## generate all the keyword and category pair
+
+    #==================== generate all the keyword and category pair==================================
     # country section
     df_dicts['country'].columns = ['region', 'country', 'key_words_chinese', 'key_words_english']  ## rename cols
     country_keywords_pair = gen_keywords_pair(df_dicts['country'], 2, [3, 4])
@@ -172,6 +173,8 @@ if __name__ == '__main__':
 
     mark_urls = get_mark_urls()
 
+    # ==================== reach the process section for each category==================================
+
     for table_pair in zip(table_name, table_name_pro):
         pre_data = return_no_processed_df(table_pair[0], table_pair[1], engine)
         if len(pre_data) == 0:  ## no dataframe needed to be processed
@@ -201,7 +204,7 @@ if __name__ == '__main__':
             ## determin the region according to the country keyword
             df['regions_country'] = df['country_keyword'] \
                 .apply(lambda x: match_country_region(x, country_region))
-
+            print('reach to process company section')
             ## company sections
             df['company_keyword'] = df['new_content'].astype('str') \
                 .apply(lambda x: match_company(x, company_keyword))
@@ -228,6 +231,7 @@ if __name__ == '__main__':
             ## mark or not
             df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
 
+            print('reach to post process of data')
             ##post process
             df['regions'] = df['region_keywords'] + df['regions_country']
             df['country'] = df['country_keyword']
@@ -241,7 +245,7 @@ if __name__ == '__main__':
             df['new_content'] = raw_df['new_content'] \
                 .apply(lambda x: '\n'.join([str(ele).strip() for ele in x]))
 
-            df['topic_merged'] = df['topic_merged'].apply(lambda x: remove_intell_topic(x))
+            df['topic_merged'] = df['topic_merged'].astype('str').apply(lambda x: remove_intell_topic(x))
             spend_time = round(time.time() -start_time,1)
             print('spend time',spend_time,' to process data')
             df.to_sql(table_name_pro,engine,if_exists='append',index=False)
