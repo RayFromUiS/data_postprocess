@@ -180,17 +180,18 @@ if __name__ == '__main__':
         if len(pre_data) == 0:  ## no dataframe needed to be processed
             break
         else:
-            raw_df = pre_datagit  ##make the dataframe name consistent
+            raw_df = pre_data.iloc ##make the dataframe name consistent
             # print(raw_df['url'][0],raw_df['content'],raw_df['content'][0],type(raw_df['content'][0]))
             # break
             raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x))
             raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x))
             # raw_df['new_content'] =
-            raw_df['format_pub_time'] = raw_df['pub_time'].apply(
-                lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d'))
+            raw_df['format_pub_time'] = raw_df['pub_time'] \
+                .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d')) \
+                .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
             raw_df['format_crawl_time'] = raw_df['crawl_time'].apply(lambda x: x.strip()[:10]) \
-                .apply(lambda x: datetime.strptime(x, "%m/%d/%Y")
-                       .strftime('%Y/%m/%d'))
+                .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d')) \
+                .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
             df = raw_df[['id', 'author', 'categories', 'preview_img_link',
                              'title', 'url', 'new_content', 'img_urls_new',
                              'format_pub_time', 'format_crawl_time']]

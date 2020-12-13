@@ -27,7 +27,7 @@ class OeNewsPro(Base):
     title = Column(String(255))
     abstracts = Column(String(255))
     preview_img_link = Column(String(255))
-    url = Column(String(255))
+    url = Column(String(1024))
 
     # pub_time = Column(String(255))
     # preview_img_link = Column(String(255))
@@ -35,7 +35,7 @@ class OeNewsPro(Base):
     author = Column(String(255))
     new_content = Column(Text)
     categories = Column(String(255))
-    img_urls_new = Column(String(255))
+    img_urls_new = Column(String(1024))
     format_crawl_time = Column(DateTime)
     regions_merged = Column(String(255))
     country_merged = Column(String(255))
