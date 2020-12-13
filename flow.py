@@ -41,11 +41,11 @@ if __name__ == '__main__':
     df_company['keywords'] = df_company['keywords']. \
         apply(lambda x: chopoff(x)). \
         apply(lambda x: x.strip()).apply(lambda x: x.strip().split('、'))
-    company_keyword = {}
+    company_keyword_pair = {}
     companies = df_company['company'].values
     keywords = df_company['keywords'].values
     for company, keyword in zip(companies, keywords):
-        company_keyword[company] = keyword
+        company_keyword_pair[company] = keyword
     # print(company_keyword)
     company_business = {}
     companies = df_company['company'].values
@@ -169,7 +169,7 @@ if __name__ == '__main__':
     storage = df_storage['storage'].values
     country = df_storage['country'].values
     for stor, coun in zip(storage, country):
-        storage_country[stor] = country
+        storage_country[stor] = coun
 
     mark_urls = get_mark_urls()
 
@@ -180,7 +180,9 @@ if __name__ == '__main__':
         if len(pre_data) == 0:  ## no dataframe needed to be processed
             break
         else:
-            raw_df = pre_data  ##make the dataframe name consistent
+            raw_df = pre_datagit  ##make the dataframe name consistent
+            # print(raw_df['url'][0],raw_df['content'],raw_df['content'][0],type(raw_df['content'][0]))
+            # break
             raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x))
             raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x))
             # raw_df['new_content'] =
@@ -207,7 +209,7 @@ if __name__ == '__main__':
             print('reach to process company section')
             ## company sections
             df['company_keyword'] = df['new_content'].astype('str') \
-                .apply(lambda x: match_company(x, company_keyword))
+                .apply(lambda x: match_company(x, company_keyword_pair))
             df['business_company'] = df['company_keyword']. \
                 apply(lambda x: match_country_region(x, company_business))
             df['country_matched_by_company'] = df['company_keyword']. \
@@ -246,7 +248,32 @@ if __name__ == '__main__':
                 .apply(lambda x: '\n'.join([str(ele).strip() for ele in x]))
 
             df['topic_merged'] = df['topic_merged'].astype('str').apply(lambda x: remove_intell_topic(x))
+            df['topic_merged'] = df['topic_merged'].astype('str')
             spend_time = round(time.time() -start_time,1)
-            print('spend time',spend_time,' to process data')
-            df.to_sql(table_name_pro,engine,if_exists='append',index=False)
+            print('spend time',spend_time,' to process data',df.info())
+            df['source'] = 'www.oedigital.com'
+            df['abstracts'] = df['title']
+
+            result = df[['source', 'title', 'abstracts', 'preview_img_link', 'url', 'format_pub_time',
+                         'author', 'new_content', 'categories',
+                         'img_urls_new', 'format_crawl_time', 'regions_merged',
+                         'country_merged', 'company_keyword', 'country_matched_by_company_merged',
+                         'subcategory_merged', 'topic_merged', 'field_keyword', 'storage_keyword', 'mark_note_by_url'
+                         ]]
+            result['orig_id'] = df['id']
+            # print(result.head(),result.columns,result.info(),result[0:1].values)
+            result['preview_img_link'] = result['preview_img_link'].astype('str')
+            result['img_urls_new'] = result['img_urls_new'].astype('str')
+            result['regions_merged'] = result['regions_merged'].astype('str')
+            result['country_merged'] = result['country_merged'].astype('str')
+            result['company_keyword'] = result['company_keyword'].astype('str')
+            result['country_matched_by_company_merged'] = result['country_matched_by_company_merged'].astype('str')
+            result['subcategory_merged'] = result['subcategory_merged'].astype('str')
+            result['field_keyword'] = result['field_keyword'].astype('str')
+            result['storage_keyword'] = result['storage_keyword'].astype('str')
+            result['mark_note_by_url'] = result['mark_note_by_url'].astype('str')
+            # test = result[0:1].values
+
+            # print(table_name_pro)
+            result.to_sql(table_pair[1],engine,if_exists='append',index=False)
 

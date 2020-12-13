@@ -13,7 +13,8 @@ def return_no_processed_df(table_name, pro_table_name, engine):
     '''
     ori_df = pd.read_sql_table(table_name, engine)
     pro_df = pd.read_sql_table(pro_table_name, engine, index_col='id')
-
+    
+#     print(orid_df.head(),pro_df.head())
     ## column id has been processed
     id_list = pro_df.orig_id.values.tolist()
 
@@ -21,4 +22,5 @@ def return_no_processed_df(table_name, pro_table_name, engine):
     # if len(id_list) == 0:
     #     return ori_df
     # else:
+#     print(id_list)
     return ori_df[~ori_df['id'].isin(id_list)]
