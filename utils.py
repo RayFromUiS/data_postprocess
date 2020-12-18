@@ -59,14 +59,15 @@ def wash_hart_energy_process(x,attrs):
     contents = []
     soup = BeautifulSoup(x, 'lxml')
     ancestor = soup.find('div',attrs=attrs)
-    for child in [child for child in ancestor.children if not isinstance(child,NavigableString)][:2]:
-        for desc in child.descendants:
-            if desc.name == 'img' and desc.has_attr('src'):
-                contents.append(desc)
-            if desc.name == 'p' and not desc.has_attr('class'):
-                contents.append(desc.text.replace(u'\xa0', u''))
-            if desc.name == 'div' and desc.has_attr('class') and desc.attrs['class']=="userAlready":
-                break
+    if ancestor is not None:
+        for child in [child for child in ancestor.children if not isinstance(child,NavigableString)][:2]:
+            for desc in child.descendants:
+                if desc.name == 'img' and desc.has_attr('src'):
+                    contents.append(desc)
+                if desc.name == 'p' and not desc.has_attr('class'):
+                    contents.append(desc.text.replace(u'\xa0', u''))
+                if desc.name == 'div' and desc.has_attr('class') and desc.attrs['class']=="userAlready":
+                    break
 
     return contents
 
