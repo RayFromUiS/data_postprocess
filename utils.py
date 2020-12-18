@@ -28,20 +28,22 @@ def wash_world_oil(x, attrs):
     chop_index = None
     soup = BeautifulSoup(x, 'lxml')
     ancestor = soup.find('div', attrs=attrs)
-    # print(list(ancestor.children))
-    for child in [child for child in ancestor.children if not isinstance(child, NavigableString)]:
-        #     print(child)
-        if child.name == 'p' and not child.has_attr('class'):
-            contents.append(child.text.replace(u'\xa0', u''))
-        #     elif child.name=='p'and child.find('strong') and not child.find('strong'):
-        #         break pu
-        elif child.name == 'div':
-            for desc in child.descendants:
-                if not isinstance(desc, NavigableString):
-                    if desc.name == 'img' and desc.has_attr('src') and re.search('/media', desc.attrs['src']):
-                        contents.append(desc)
-        elif child.name == 'h2' and re.search(r'Related News', child.string):
-            break
+
+    if ancestor is not None:
+        # print(list(ancestor.children))
+        for child in [child for child in ancestor.children if not isinstance(child, NavigableString)]:
+            #     print(child)
+            if child.name == 'p' and not child.has_attr('class'):
+                contents.append(child.text.replace(u'\xa0', u''))
+            #     elif child.name=='p'and child.find('strong') and not child.find('strong'):
+            #         break pu
+            elif child.name == 'div':
+                for desc in child.descendants:
+                    if not isinstance(desc, NavigableString):
+                        if desc.name == 'img' and desc.has_attr('src') and re.search('/media', desc.attrs['src']):
+                            contents.append(desc)
+            elif child.name == 'h2' and re.search(r'Related News', child.string):
+                break
 
     if contents.index('REFERENCES'):
         chop_index = contents.index('REFERENCES')
