@@ -27,14 +27,14 @@ def wash_world_oil(x, attrs):
     contents = []
     chop_index = None
     soup = BeautifulSoup(x, 'lxml')
-    ancestor = soup.find('div', attrs={'id': 'news'})
+    ancestor = soup.find('div', attrs=attrs)
     # print(list(ancestor.children))
     for child in [child for child in ancestor.children if not isinstance(child, NavigableString)]:
         #     print(child)
         if child.name == 'p' and not child.has_attr('class'):
             contents.append(child.text.replace(u'\xa0', u''))
         #     elif child.name=='p'and child.find('strong') and not child.find('strong'):
-        #         break
+        #         break pu
         elif child.name == 'div':
             for desc in child.descendants:
                 if not isinstance(desc, NavigableString):

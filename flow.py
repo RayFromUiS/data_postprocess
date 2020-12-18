@@ -192,26 +192,26 @@ if __name__ == '__main__':
             # print(raw_df['url'][0])
             if re.search(r'^news',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d')) \
-                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x,div_class_name['oe']))
                 raw_df['source'] = 'https://www.oedigital.com'
             if re.search(r'cnpc',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d')) \
-                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                    .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x)  \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['cnpc_news']))
                 raw_df['source'] = 'http://news.cnpc.com.cn'
             if re.search(r'world_oil',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%d/%m/%Y").strftime('%Y/%m/%d')) \
-                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_worldoil(x,div_class_name['world_oil']))
+                    .apply(lambda x: datetime.strptime(x, "%d/%m/%Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_world_oil(x,div_class_name['world_oil']))
                 raw_df['source'] = 'https://www.worldoil.com/'
             if re.search(r'hart',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d')) \
-                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_hart_energy_process(x,div_class_name['hart_energy']))
                 raw_df['source'] = 'https://www.hartenergy.com'
                 # r['abstracts'] = df['title']
