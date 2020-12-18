@@ -42,7 +42,7 @@ def wash_world_oil(x, attrs):
                     if not isinstance(desc, NavigableString):
                         if desc.name == 'img' and desc.has_attr('src') and re.search('/media', desc.attrs['src']):
                             contents.append(desc)
-            elif child.name == 'h2' and re.search(r'Related News', child.string):
+            elif child.name == 'h2' and re.search(r'Related News', str(child.string)):
                 break
     try:
         if contents.index('REFERENCES'):
