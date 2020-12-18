@@ -1,17 +1,77 @@
 import re
 import ast
 from bs4 import BeautifulSoup
+from bs4.element import NavigableString
 import pandas as pd
 import requests as req
 from bs4 import Tag
 
+#
+# def wash_oe_cnpc_hart_process(x,class_name):
+#     '''
+#     '''
+#     contents = []
+#     soup = BeautifulSoup(x, 'lxml')
+#     ancestor = soup.find('div', attrs={'class': class_name})
+#     for desc in ancestor.descendants:
+#         if desc.name == 'img' and desc.has_attr('src'):
+#             contents.append(desc)
+#         elif desc.name == 'p' and not desc.has_attr('class'):
+#             contents.append(desc.text.replace(u'\xa0', u''))
+#
+#     return contents
 
-def wash_process(x):
+def wash_world_oil(x, attrs):
+    '''grab
+    '''
+    contents = []
+    chop_index = None
+    soup = BeautifulSoup(x, 'lxml')
+    ancestor = soup.find('div', attrs={'id': 'news'})
+    # print(list(ancestor.children))
+    for child in [child for child in ancestor.children if not isinstance(child, NavigableString)]:
+        #     print(child)
+        if child.name == 'p' and not child.has_attr('class'):
+            contents.append(child.text.replace(u'\xa0', u''))
+        #     elif child.name=='p'and child.find('strong') and not child.find('strong'):
+        #         break
+        elif child.name == 'div':
+            for desc in child.descendants:
+                if not isinstance(desc, NavigableString):
+                    if desc.name == 'img' and desc.has_attr('src') and re.search('/media', desc.attrs['src']):
+                        contents.append(desc)
+        elif child.name == 'h2' and re.search(r'Related News', child.string):
+            break
+
+    if contents.index('REFERENCES'):
+        chop_index = contents.index('REFERENCES')
+    contents = contents[:chop_index]
+
+    return contents
+
+def wash_hart_energy_process(x,attrs):
     '''
     '''
     contents = []
     soup = BeautifulSoup(x, 'lxml')
-    ancestor = soup.find('div', attrs={'class': 'article'})
+    ancestor = soup.find('div',attrs=attrs)
+    for child in [child for child in ancestor.children if not isinstance(child,NavigableString)][:2]:
+        for desc in child.descendants:
+            if desc.name == 'img' and desc.has_attr('src'):
+                contents.append(desc)
+            if desc.name == 'p' and not desc.has_attr('class'):
+                contents.append(desc.text.replace(u'\xa0', u''))
+            if desc.name == 'div' and desc.has_attr('class') and desc.attrs['class']=="userAlready":
+                break
+
+    return contents
+
+def wash_process(x,attrs):
+    '''
+    '''
+    contents = []
+    soup = BeautifulSoup(x, 'lxml')
+    ancestor = soup.find('div', attrs=attrs)
     for desc in ancestor.descendants:
         if desc.name == 'img' and desc.has_attr('src'):
             contents.append(desc)
@@ -19,6 +79,7 @@ def wash_process(x):
             contents.append(desc.text.replace(u'\xa0', u''))
 
     return contents
+
 
 
 def extract_img_links(x):
@@ -169,8 +230,6 @@ def match_storage(x, storage_keyword):
 
 def get_mark_urls():
     mark_urls =[]
-    import requests as req
-    from bs4 import BeautifulSoup
     url = 'https://www.oedigital.com'
     headers= {'user-agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'}
     res = req.get(url,headers=headers)
@@ -180,6 +239,44 @@ def get_mark_urls():
         mark_urls.append(href.attrs['href'])
     return mark_urls
 
+def get_world_oil_hot():
+    '''get front page url'''
+    ele_urls = []
+    host='https://www.worldoil.com'
+    res = req.get(host)
+    soup = BeautifulSoup(res.text,'lxml')
+    cols = soup.find_all('div',attrs={'class':'col-sm-6'})[:2]
+    for col in cols:
+        urls = col.find_all('a')
+        for url in urls:
+            ele_urls.append(host+url['href'])
+    return ele_urls
+
+
+def get_hart_energy_hot():
+    ele_urls = []
+    host = 'https://www.hartenergy.com'
+    res = req.get(host)
+    soup = BeautifulSoup(res.text, 'lxml')
+    latest = soup.find('div', attrs={'id': 'homepage-latest'})
+    rows = latest.find_all('a')
+    for row in rows[:-1]:
+        ele_urls.append(host + row['href'])
+    return ele_urls
+
+
+def mark_cnpc_hot():
+    '''compare with the tiltes'''
+    titles = []
+    host = 'http://news.cnpc.com.cn/toutiao/'
+    res = req.get(host)
+    soup = BeautifulSoup(res.text, 'lxml')
+    lists = soup.find('div', attrs={'class': 'list18'})
+    for row in lists.find_all('li', attrs={'class': 'ejli'}):
+        title = row.find('a').text.strip()
+        titles.append(title)
+
+    return titles
 
 def mark_url(x, mark_urls):
     for mark_url in mark_urls:

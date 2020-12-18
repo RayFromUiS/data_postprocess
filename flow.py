@@ -4,15 +4,17 @@ import time
 from datetime import datetime
 from models import db_connect,create_table
 from check_pro import return_no_processed_df
-from utils import wash_process, extract_img_links, read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
+from utils import wash_process,wash_hart_energy_process,wash_world_oil,extract_img_links, read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
     chopoff, match_company,rematch_keywords,match_topic,match_storage,get_mark_urls,mark_url,add_same_key,\
-    remove_intell_topic
+    remove_intell_topic,mark_cnpc_hot,get_hart_energy_hot,get_world_oil_hot
+
+
 
 if __name__ == '__main__':
 
     start_time = time.time()
-    table_name = ['news_oil_oe']
-    table_name_pro = ['news_oil_oe_pro']
+    table_name = ['news_oil_oe','world_oil','hart_energy','cnpc_news']
+    table_name_pro = ['news_oil_oe_pro','world_oil_pro','hart_energy_pro','cnpc_news_pro']
     engine = db_connect()
     create_table(engine)
     cate_file = 'input_data/categories_list.xlsx'
@@ -174,28 +176,55 @@ if __name__ == '__main__':
     mark_urls = get_mark_urls()
 
     # ==================== reach the process section for each category==================================
+    div_class_name = {'oe': {'class':'article'},
+                      'world_oil': {'id':'news'},
+                        'cnpc_news':{'class':'sj-main'},
+                        'hart_energy':{'class':'article-content-wrapper'}
+                      }
 
     for table_pair in zip(table_name, table_name_pro):
         pre_data = return_no_processed_df(table_pair[0], table_pair[1], engine)
+        # print(len(pre_data))
         if len(pre_data) == 0:  ## no dataframe needed to be processed
-            break
+            continue
         else:
-            raw_df = pre_data.iloc ##make the dataframe name consistent
-            # print(raw_df['url'][0],raw_df['content'],raw_df['content'][0],type(raw_df['content'][0]))
-            # break
-            raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x))
+            raw_df = pre_data.iloc[:1] ##make tsouhe dataframe name consistent
+            # print(raw_df['url'][0])
+            if re.search(r'^news',table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d')) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x,div_class_name['oe']))
+                raw_df['source'] = 'https://www.oedigital.com'
+            if re.search(r'cnpc',table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d')) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['cnpc_news']))
+                raw_df['source'] = 'http://news.cnpc.com.cn'
+            if re.search(r'world_oil',table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%d/%m/%Y").strftime('%Y/%m/%d')) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_worldoil(x,div_class_name['world_oil']))
+                raw_df['source'] = 'https://www.worldoil.com/'
+            if re.search(r'hart',table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d')) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_hart_energy_process(x,div_class_name['hart_energy']))
+                raw_df['source'] = 'https://www.hartenergy.com'
+                # r['abstracts'] = df['title']
+
             raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x))
-            # raw_df['new_content'] =
-            raw_df['format_pub_time'] = raw_df['pub_time'] \
-                .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d')) \
-                .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
             raw_df['format_crawl_time'] = raw_df['crawl_time'].apply(lambda x: x.strip()[:10]) \
                 .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d')) \
                 .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
-            df = raw_df[['id', 'author', 'categories', 'preview_img_link',
+            df = raw_df[['id', 'author','pre_title','categories', 'preview_img_link',
                              'title', 'url', 'new_content', 'img_urls_new',
                              'format_pub_time', 'format_crawl_time']]
-            ## create first checkpoint
+
+
             ## country keyword section
             df['country_keyword'] = df['new_content'].astype('str'). \
                 apply(lambda x: match_keyword(x, country_keywords_pair))
@@ -232,10 +261,21 @@ if __name__ == '__main__':
             df['country_storage'] = df['storage_keyword'] \
                 .apply(lambda x: match_country_region(x, storage_country))
             ## mark or not
-            df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
+            if re.search(r'^news', table_pair[0]):
+                mark_urls = get_mark_urls()
+                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
+            elif re.search(r'cnpc', table_pair[0]) :
+                mark_tiltes = mark_cnpc_hot()
+                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_url(x, mark_tiltes))
+            elif re.search(r'world_oil',table_pair[0]):
+                mark_urls = get_world_oil_hot()
+                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
+            elif re.search(r'hart',table_pair[0]):
+                mark_urls = get_hart_energy_hot()
+                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
 
-            print('reach to post process of data')
-            ##post process
+            # print('reach to post process of data')
+            ##post processgit
             df['regions'] = df['region_keywords'] + df['regions_country']
             df['country'] = df['country_keyword']
             df['company_merged'] = df['company_keyword'].apply(lambda x: add_same_key(x))
@@ -252,9 +292,14 @@ if __name__ == '__main__':
             df['topic_merged'] = df['topic_merged'].astype('str')
             spend_time = round(time.time() -start_time,1)
             print('spend time',spend_time,' to process data',df.info())
-            df['source'] = 'www.oedigital.com'
-            df['abstracts'] = df['title']
 
+            df['source'] = raw_df['source']
+            # df['abstracts'] = df['title']
+            if re.search(r'cnpc', table_pair[0]) or re.search(r'^news', table_pair[0]):
+                df['abstracts'] = df['new_content'].apply(lambda x:re.sub(r'<img .+>','',x)[:340])
+            else:
+                df['abstracts'] = df['pre_title']
+            df['abstract'] = df['abstracts'].apply(lambda x:x[:340])
             result = df[['source', 'title', 'abstracts', 'preview_img_link', 'url', 'format_pub_time',
                          'author', 'new_content', 'categories',
                          'img_urls_new', 'format_crawl_time', 'regions_merged',
@@ -276,5 +321,8 @@ if __name__ == '__main__':
             # test = result[0:1].values
 
             # print(table_name_pro)
-            result.to_sql(table_pair[1],engine,if_exists='append',index=False)
+            try:
+                result.to_sql(table_pair[1],engine,if_exists='append',index=False)
+            except:
+                print(table_pair[0],'has problem to write in')
 

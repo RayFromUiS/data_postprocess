@@ -23,4 +23,4 @@ def return_no_processed_df(table_name, pro_table_name, engine):
     #     return ori_df
     # else:
 #     print(id_list)
-    return ori_df[~ori_df['id'].isin(id_list)]
+    return ori_df[~(ori_df['id'].isin(id_list))]
