@@ -44,9 +44,11 @@ def wash_world_oil(x, attrs):
                             contents.append(desc)
             elif child.name == 'h2' and re.search(r'Related News', child.string):
                 break
-
-    if contents.index('REFERENCES'):
-        chop_index = contents.index('REFERENCES')
+    try:
+        if contents.index('REFERENCES'):
+            chop_index = contents.index('REFERENCES')
+    except :
+        pass
     contents = contents[:chop_index]
 
     return contents
