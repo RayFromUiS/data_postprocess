@@ -204,7 +204,7 @@ if __name__ == '__main__':
                 raw_df['source'] = 'http://news.cnpc.com.cn'
             if re.search(r'world_oil',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%d/%m/%Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_world_oil(x,div_class_name['world_oil']))
                 raw_df['source'] = 'https://www.worldoil.com/'
