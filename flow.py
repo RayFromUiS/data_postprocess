@@ -343,12 +343,12 @@ if __name__ == '__main__':
             # test = result[0:1].values
 
             # print(table_name_pro)
+            ##update column of field_keyword
             result.to_sql('temp_table', engine, if_exists='replace')
-
             sql = f"""UPDATE {table_pair[1]}  t1
                         INNER JOIN temp_table t2  ON t1.orig_id = t2.orig_id
                         SET t1.field_keyword = t2.field_keyword"""
-
             with engine.begin() as conn:
                 conn.execute(sql)
+            # result.to_sql(table_pair[1],engine,if_exists='append')
 
