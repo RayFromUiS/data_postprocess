@@ -99,7 +99,18 @@ def extract_img_links(x):
                     img_links.append((str(img_link), ele.attrs['alt']))
 
     return img_links
+def extract_hart_energy_img_links(x):
+    '''extract img_links from content
+    '''
+    img_links = []
+    for ele in x:
+        if isinstance(ele, Tag):
+            if ele.name == 'img' and ele.has_attr('src') :
+                img_link = ele.attrs['src']
+                if re.match(r'^/', img_link):
+                    img_links.append((str(img_link), ele.attrs['alt']))
 
+    return img_links
 
 def read_xlsx(file):
     '''read all the categories sheet for keywords searching
