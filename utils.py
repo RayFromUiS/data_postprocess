@@ -41,7 +41,9 @@ def wash_world_oil(x, attrs):
                 for desc in child.descendants:
                     if not isinstance(desc, NavigableString):
                         if desc.name == 'img' and desc.has_attr('src') and re.search('/media', desc.attrs['src']):
+                            desc.attrs['src'] = 'https://www.worldoil.com' + desc.attrs['src']
                             contents.append(desc)
+                            # contents.append(desc)
             elif child.name == 'h2' and re.search(r'Related News', str(child.string)):
                 break
     try:
@@ -63,6 +65,7 @@ def wash_hart_energy_process(x,attrs):
         for child in [child for child in ancestor.children if not isinstance(child,NavigableString)][:2]:
             for desc in child.descendants:
                 if desc.name == 'img' and desc.has_attr('src'):
+                    desc.attrs['src'] = 'https://www.hartenergy.com'+desc.attrs['src']
                     contents.append(desc)
                 if desc.name == 'p' and not desc.has_attr('class'):
                     contents.append(desc.text.replace(u'\xa0', u''))
@@ -85,6 +88,22 @@ def wash_process(x,attrs):
 
     return contents
 
+def wash_oil_gas_process(x,attrs):
+    '''
+    '''
+    contents = []
+    soup = BeautifulSoup(x, 'lxml')
+    ancestor = soup.find('div', attrs=attrs)
+    for desc in ancestor.descendants:
+        if desc.name == 'img' and desc.has_attr('src') and re.search(r'/site',desc.attrs['src']):
+            desc.attrs['src'] = 'https://www.oilandgas360.com'+desc.attrs['src']
+            contents.append(desc)
+        elif desc.name == 'p' and not desc.has_attr('class') \
+            and not 'a' in [child.name for child in desc.children]:
+            contents.append(desc.text.replace(u'\xa0', u''))
+
+    return contents
+
 
 
 def extract_img_links(x):
@@ -99,18 +118,18 @@ def extract_img_links(x):
                     img_links.append((str(img_link), ele.attrs['alt']))
 
     return img_links
-def extract_hart_energy_img_links(x):
-    '''extract img_links from content
-    '''
-    img_links = []
-    for ele in x:
-        if isinstance(ele, Tag):
-            if ele.name == 'img' and ele.has_attr('src') :
-                img_link = ele.attrs['src']
-                if re.match(r'^/', img_link):
-                    img_links.append((str(img_link), ele.attrs['alt']))
-
-    return img_links
+# def extract_hart_energy_img_links(x):
+#     '''extract img_links from content
+#     '''
+#     img_links = []
+#     for ele in x:
+#         if isinstance(ele, Tag):
+#             if ele.name == 'img' and ele.has_attr('src') :
+#                 img_link = ele.attrs['src']
+#                 if re.match(r'^/', img_link):
+#                     img_links.append(('https://www.hartenergy.com'+str(img_link), ele.attrs['alt'] if ele.attrs['alt'] else None))
+#
+#     return img_links
 
 def read_xlsx(file):
     '''read all the categories sheet for keywords searching
@@ -280,6 +299,18 @@ def get_hart_energy_hot():
         ele_urls.append(host + row['href'])
     return ele_urls
 
+def get_oil_gas_hot():
+    headers= {'user-agent':'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'}
+    titles = []
+    host = 'https://www.oilandgas360.com/'
+    res = req.get(host,headers =headers)
+    soup = BeautifulSoup(res.text, 'lxml')
+    ancestor = soup.find('div',attrs={'class':'main-area'}).descendants
+    for child in ancestor:
+        if child.name=='a' and child.has_attr('title'):
+            titles.append(child.attrs['title'])
+    titles =set(titles)
+    return titles
 
 def mark_cnpc_hot():
     '''compare with the tiltes'''
@@ -294,9 +325,12 @@ def mark_cnpc_hot():
 
     return titles
 
-def mark_url(x, mark_urls):
-    for mark_url in mark_urls:
-        return str(mark_url).strip() == str(x).strip()
+def mark_title(x, mark_titles):
+    mark_titles = [mark.strip().lower() for mark in mark_titles ]
+    if x.strip().lower() in mark_titles:
+        return True
+
+
 
 
 def add_same_key(x):

@@ -4,9 +4,9 @@ import time
 from datetime import datetime
 from models import db_connect,create_table,TempTable
 from check_pro import return_no_processed_df
-from utils import wash_process,wash_hart_energy_process,wash_world_oil,extract_img_links, extract_hart_energy_img_links,read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
-    chopoff, match_company,rematch_keywords,match_topic,match_storage,get_mark_urls,mark_url,add_same_key,\
-    remove_intell_topic,mark_cnpc_hot,get_hart_energy_hot,get_world_oil_hot
+from utils import wash_process,wash_hart_energy_process,wash_world_oil,wash_oil_gas_process,extract_img_links,read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
+    chopoff, match_company,rematch_keywords,match_topic,match_storage,get_mark_urls,mark_title,add_same_key,\
+    remove_intell_topic,mark_cnpc_hot,get_hart_energy_hot,get_world_oil_hot,get_oil_gas_hot
 
 
 
@@ -175,21 +175,22 @@ if __name__ == '__main__':
     for stor, coun in zip(storage, country):
         storage_country[stor] = coun
 
-    mark_urls = get_mark_urls()
+    # mark_urls = get_mark_urls()
 
     # ==================== reach the process section for each category==================================
     div_class_name = {'oe': {'class':'article'},
                       'world_oil': {'id':'news'},
                         'cnpc_news':{'class':'sj-main'},
                         'hart_energy':{'class':'article-content-wrapper'},
-                        'oilfield_tech':{'itemprop':"articleBody"}
+                        'oilfield_tech':{'itemprop':"articleBody"},
+                        'oil_and_gas':{'class': 'entry'}
                       }
 
     for table_pair in zip(table_name, table_name_pro):
         pre_data = return_no_processed_df(table_pair[0], table_pair[1], engine)
         # print(len(pre_data))
         if len(pre_data) == 0:  ## no dataframe needed to be processed
-            break
+            continue
         else:
             raw_df = pre_data.iloc[:1] ##make tsouhe dataframe name consistent
             ## format publication time and the new content as well as source
@@ -227,11 +228,19 @@ if __name__ == '__main__':
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['oilfield_tech']))
                 raw_df['source'] = 'https://www.oilfieldtechonology.com/'
 
+            if re.search(r'oil_and_gas',table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_oil_gas_process(x, div_class_name['oil_and_gas']))
+                raw_df['source'] = 'https://www.oilandgas360.com/'
+
             ## new image url section
-            if re.search(r'hart',table_pair[0]):
-                raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_hart_energy_img_links(x))
-            else:
-                raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x))
+            # if re.search(r'hart',table_pair[0]):
+            #     raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_hart_energy_img_links(x))
+            # else:
+            raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x))
             ## crawl time formating
             raw_df['format_crawl_time'] = raw_df['crawl_time'].apply(lambda x: x.strip()[:10]) \
                 .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d')) \
@@ -279,18 +288,21 @@ if __name__ == '__main__':
             ## mark or not
             if re.search(r'^news', table_pair[0]):
                 mark_urls = get_mark_urls()
-                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
+                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
             elif re.search(r'cnpc', table_pair[0]) :
                 mark_tiltes = mark_cnpc_hot()
-                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_url(x, mark_tiltes))
+                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_tiltes))
             elif re.search(r'world_oil',table_pair[0]):
                 mark_urls = get_world_oil_hot()
-                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
+                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
             elif re.search(r'hart',table_pair[0]):
                 mark_urls = get_hart_energy_hot()
-                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_url(x, mark_urls))
+                df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
             elif re.search(r'oilfield_tech',table_pair[1]):
                 df['mark_note_by_url'] = None
+            elif re.search(r'oil_and_gas',table_pair[1]):
+                mark_titles = get_oil_gas_hot()
+                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
 
             # print('reach to post process of data')
             ##post processgit
@@ -344,11 +356,11 @@ if __name__ == '__main__':
 
             # print(table_name_pro)
             ##update column of field_keyword
-            result.to_sql('temp_table', engine, if_exists='replace')
-            sql = f"""UPDATE {table_pair[1]}  t1
-                        INNER JOIN temp_table t2  ON t1.orig_id = t2.orig_id
-                        SET t1.field_keyword = t2.field_keyword"""
-            with engine.begin() as conn:
-                conn.execute(sql)
-            # result.to_sql(table_pair[1],engine,if_exists='append')
+            # result.to_sql('temp_table', engine, if_exists='replace')
+            # sql = f"""UPDATE {table_pair[1]}  t1
+            #             INNER JOIN temp_table t2  ON t1.orig_id = t2.orig_id
+            #             SET t1.field_keyword = t2.field_keyword"""
+            # with engine.begin() as conn:
+            #     conn.execute(sql)
+            result.to_sql(table_pair[1],engine,if_exists='append',index=False)
 
