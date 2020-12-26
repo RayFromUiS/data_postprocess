@@ -78,13 +78,15 @@ def wash_process(x,attrs):
     '''
     '''
     contents = []
-    soup = BeautifulSoup(x, 'lxml')
-    ancestor = soup.find('div', attrs=attrs)
-    for desc in ancestor.descendants:
-        if desc.name == 'img' and desc.has_attr('src'):
-            contents.append(desc)
-        elif desc.name == 'p' and not desc.has_attr('class'):
-            contents.append(desc.text.replace(u'\xa0', u''))
+    if x is not None:
+        soup = BeautifulSoup(x, 'lxml')
+        ancestor = soup.find('div', attrs=attrs)
+        # if ancestor is not None:
+        for desc in ancestor.descendants:
+            if desc.name == 'img' and desc.has_attr('src'):
+                contents.append(desc)
+            elif desc.name == 'p' and not desc.has_attr('class'):
+                contents.append(desc.text.replace(u'\xa0', u''))
 
     return contents
 
@@ -110,6 +112,7 @@ def extract_img_links(x):
     '''extract img_links from content
     '''
     img_links = []
+
     for ele in x:
         if isinstance(ele, Tag):
             if ele.name == 'img' and ele.has_attr('src') and ele.has_attr('alt'):
@@ -271,7 +274,7 @@ def get_mark_urls():
     soup = BeautifulSoup(res.text,'lxml')
     hrefs = soup.find_all('a',attrs={'class':'snippet-flex'})
     for href in hrefs:
-        mark_urls.append(href.attrs['href'])
+        mark_urls.append(href.string)
     return mark_urls
 
 def get_world_oil_hot():
@@ -284,7 +287,7 @@ def get_world_oil_hot():
     for col in cols:
         urls = col.find_all('a')
         for url in urls:
-            ele_urls.append(host+url['href'])
+            ele_urls.append(url.string)
     return ele_urls
 
 
@@ -296,7 +299,7 @@ def get_hart_energy_hot():
     latest = soup.find('div', attrs={'id': 'homepage-latest'})
     rows = latest.find_all('a')
     for row in rows[:-1]:
-        ele_urls.append(host + row['href'])
+        ele_urls.append(row.string)
     return ele_urls
 
 def get_oil_gas_hot():
@@ -326,7 +329,7 @@ def mark_cnpc_hot():
     return titles
 
 def mark_title(x, mark_titles):
-    mark_titles = [mark.strip().lower() for mark in mark_titles ]
+    mark_titles = [mark.strip().lower() for mark in mark_titles if mark]
     if x.strip().lower() in mark_titles:
         return True
 

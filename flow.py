@@ -13,8 +13,8 @@ from utils import wash_process,wash_hart_energy_process,wash_world_oil,wash_oil_
 if __name__ == '__main__':
 
     start_time = time.time()
-    table_name = ['news_oil_oe','world_oil','hart_energy','cnpc_news','oilfield_tech']
-    table_name_pro = ['news_oil_oe_pro','world_oil_pro','hart_energy_pro','cnpc_news_pro','oilfield_tech_pro']
+    table_name = ['news_oil_oe','world_oil','hart_energy','cnpc_news','oilfield_tech','in_en_storage']
+    table_name_pro = ['news_oil_oe_pro','world_oil_pro','hart_energy_pro','cnpc_news_pro','oilfield_tech_pro','in_en_storage_pro']
     engine = db_connect()
     create_table(engine)
     cate_file = 'input_data/categories_list.xlsx'
@@ -183,7 +183,8 @@ if __name__ == '__main__':
                         'cnpc_news':{'class':'sj-main'},
                         'hart_energy':{'class':'article-content-wrapper'},
                         'oilfield_tech':{'itemprop':"articleBody"},
-                        'oil_and_gas':{'class': 'entry'}
+                        'oil_and_gas':{'class': 'entry'},
+                        'in_en_storage':{'div':'content'}
                       }
 
     for table_pair in zip(table_name, table_name_pro):
@@ -192,7 +193,7 @@ if __name__ == '__main__':
         if len(pre_data) == 0:  ## no dataframe needed to be processed
             continue
         else:
-            raw_df = pre_data.iloc[:1] ##make tsouhe dataframe name consistent
+            raw_df = pre_data ##make tsouhe dataframe name consistent
             ## format publication time and the new content as well as source
             if re.search(r'^news',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
@@ -200,7 +201,7 @@ if __name__ == '__main__':
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x,div_class_name['oe']))
                 raw_df['source'] = 'https://www.oedigital.com'
-            if re.search(r'cnpc',table_pair[0]):
+            if re.search(r'cnpc',table_pair[0]) :
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x)  \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
@@ -217,7 +218,8 @@ if __name__ == '__main__':
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_hart_energy_process(x,div_class_name['hart_energy']))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_hart_energy_process(x,div_class_name['hart_energy'])
+                                                                )
                 raw_df['source'] = 'https://www.hartenergy.com'
                 # r['abstracts'] = df['title']
 
@@ -236,11 +238,17 @@ if __name__ == '__main__':
                     lambda x: wash_oil_gas_process(x, div_class_name['oil_and_gas']))
                 raw_df['source'] = 'https://www.oilandgas360.com/'
 
+            if re.search(r'in_en_storage', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['in_en_storage']))
+                raw_df['source'] = 'https://www.in-en.com/tag/储气库'
             ## new image url section
             # if re.search(r'hart',table_pair[0]):
             #     raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_hart_energy_img_links(x))
             # else:
-            raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x))
+            raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x) if x is not None else x)
             ## crawl time formating
             raw_df['format_crawl_time'] = raw_df['crawl_time'].apply(lambda x: x.strip()[:10]) \
                 .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d')) \
@@ -290,8 +298,8 @@ if __name__ == '__main__':
                 mark_urls = get_mark_urls()
                 df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
             elif re.search(r'cnpc', table_pair[0]) :
-                mark_tiltes = mark_cnpc_hot()
-                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_tiltes))
+                mark_titles = mark_cnpc_hot()
+                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
             elif re.search(r'world_oil',table_pair[0]):
                 mark_urls = get_world_oil_hot()
                 df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
@@ -303,7 +311,8 @@ if __name__ == '__main__':
             elif re.search(r'oil_and_gas',table_pair[1]):
                 mark_titles = get_oil_gas_hot()
                 df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
-
+            elif re.search(r'in_en_storage',table_pair[1]):
+                df['mark_note_by_url'] = None
             # print('reach to post process of data')
             ##post processgit
             df['regions'] = df['region_keywords'] + df['regions_country']
@@ -316,7 +325,7 @@ if __name__ == '__main__':
             df['country_matched_by_company_merged'] = df['country_matched_by_company'].apply(lambda x: add_same_key(x))
 
             df['new_content'] = raw_df['new_content'] \
-                .apply(lambda x: '\n'.join([str(ele).strip() for ele in x]))
+                .apply(lambda x: '\n'.join([str(ele).strip() for ele in x]) )
 
             df['topic_merged'] = df['topic_merged'].astype('str').apply(lambda x: remove_intell_topic(x))
             df['topic_merged'] = df['topic_merged'].astype('str')
@@ -326,10 +335,10 @@ if __name__ == '__main__':
             df['source'] = raw_df['source']
 
             ##abastracts sections
-            if re.search(r'cnpc', table_pair[0]) or re.search(r'^news', table_pair[0]):
-                df['abstracts'] = df['new_content'].apply(lambda x:re.sub(r'<img .+>','',x)[:340])
-            else:
-                df['abstracts'] = df['pre_title']
+            # if re.search(r'cnpc', table_pair[0]) or re.search(r'^news', table_pair[0]):
+            df['abstracts'] = df['new_content'].apply(lambda x:re.sub(r'<img .+>','',x)[:340])
+            # else:
+            #     df['abstracts'] = df['pre_title']
             ##cnpc author section
             if re.search(r'cnpc_news', table_pair[0]):
                 df['author'] = None
@@ -362,5 +371,8 @@ if __name__ == '__main__':
             #             SET t1.field_keyword = t2.field_keyword"""
             # with engine.begin() as conn:
             #     conn.execute(sql)
-            result.to_sql(table_pair[1],engine,if_exists='append',index=False)
+            try:
+                result.to_sql(table_pair[1],engine,if_exists='append',index=False,chunksize=1)
+            except:
+                continue
 
