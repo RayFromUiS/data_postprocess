@@ -4,7 +4,8 @@ import time
 from datetime import datetime
 from models import db_connect,create_table,TempTable
 from check_pro import return_no_processed_df
-from utils import wash_process,wash_hart_energy_process,wash_world_oil,wash_oil_gas_process,extract_img_links,read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
+from utils import wash_process,wash_hart_energy_process,wash_world_oil,wash_oil_gas_process,\
+    wash_jpt_process,extract_img_links,read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
     chopoff, match_company,rematch_keywords,match_topic,match_storage,get_mark_urls,mark_title,add_same_key,\
     remove_intell_topic,mark_cnpc_hot,get_hart_energy_hot,get_world_oil_hot,get_oil_gas_hot
 
@@ -13,8 +14,10 @@ from utils import wash_process,wash_hart_energy_process,wash_world_oil,wash_oil_
 if __name__ == '__main__':
 
     start_time = time.time()
-    table_name = ['news_oil_oe','world_oil','hart_energy','cnpc_news','oilfield_tech','in_en_storage']
-    table_name_pro = ['news_oil_oe_pro','world_oil_pro','hart_energy_pro','cnpc_news_pro','oilfield_tech_pro','in_en_storage_pro']
+    table_name = ['news_oil_oe','world_oil','hart_energy','cnpc_news','oilfield_tech','in_en_storage'
+                  ,'jpt_latest']
+    table_name_pro = ['news_oil_oe_pro','world_oil_pro','hart_energy_pro','cnpc_news_pro',
+                      'oilfield_tech_pro','in_en_storage_pro','jpt_latest_pro']
     engine = db_connect()
     create_table(engine)
     cate_file = 'input_data/categories_list.xlsx'
@@ -184,7 +187,8 @@ if __name__ == '__main__':
                         'hart_energy':{'class':'article-content-wrapper'},
                         'oilfield_tech':{'itemprop':"articleBody"},
                         'oil_and_gas':{'class': 'entry'},
-                        'in_en_storage':{'div':'content'}
+                        'in_en_storage':{'id':'content'},
+                        'jpt_latest_pro':{'class':'articleBodyText'}
                       }
 
     for table_pair in zip(table_name, table_name_pro):
@@ -193,7 +197,7 @@ if __name__ == '__main__':
         if len(pre_data) == 0:  ## no dataframe needed to be processed
             continue
         else:
-            raw_df = pre_data ##make tsouhe dataframe name consistent
+            raw_df = pre_data.iloc[:10] ##make tsouhe dataframe name consistent
             ## format publication time and the new content as well as source
             if re.search(r'^news',table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
@@ -235,15 +239,23 @@ if __name__ == '__main__':
                     .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(
-                    lambda x: wash_oil_gas_process(x, div_class_name['oil_and_gas']))
+                    lambda x: wash_oil_gas_process(x, div_class_name['oil_and_gas']) if x is not None else x)
                 raw_df['source'] = 'https://www.oilandgas360.com/'
 
             if re.search(r'in_en_storage', table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['in_en_storage']))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['in_en_storage'])
+                                                                if x is not None else x)
                 raw_df['source'] = 'https://www.in-en.com/tag/储气库'
+            if re.search(r'jpt',table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_jpt_process(x, div_class_name['jpt_latest_pro']) if x is not None else x)
+                raw_df['source'] = 'https://pubs.spe.org/'
             ## new image url section
             # if re.search(r'hart',table_pair[0]):
             #     raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_hart_energy_img_links(x))
@@ -311,7 +323,7 @@ if __name__ == '__main__':
             elif re.search(r'oil_and_gas',table_pair[1]):
                 mark_titles = get_oil_gas_hot()
                 df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
-            elif re.search(r'in_en_storage',table_pair[1]):
+            elif re.search(r'in_en_storage',table_pair[1]) or re.search(r'jpt_latest_pro',table_pair[1]):
                 df['mark_note_by_url'] = None
             # print('reach to post process of data')
             ##post processgit
@@ -371,8 +383,8 @@ if __name__ == '__main__':
             #             SET t1.field_keyword = t2.field_keyword"""
             # with engine.begin() as conn:
             #     conn.execute(sql)
-            try:
-                result.to_sql(table_pair[1],engine,if_exists='append',index=False,chunksize=1)
-            except:
-                continue
+            # try:
+            result.to_sql(table_pair[1],engine,if_exists='append',index=False,chunksize=1)
+            # except:
+            #     continue
 

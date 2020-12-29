@@ -1,17 +1,21 @@
 from models import db_connect,create_table
 
 import pandas as pd
-
+# from pymongo import MongoClient
 
 engine = db_connect()
 create_table(engine)
-
+# mongo_uri='mongodb://root:password@localhost:27017'
 
 def return_no_processed_df(table_name, pro_table_name, engine):
     '''
     compare with two table extract such row has not processed
     '''
-    ori_df = pd.read_sql_table(table_name, engine)
+    # client = MongoClient(mongo_uri)
+    # db = client['petroleum_news']
+    # table_db = db[table_name].find()
+    ori_df = pd.read_sql_table(table_name,engine)
+    # ori_df.index.name='orig_id'
     pro_df = pd.read_sql_table(pro_table_name, engine, index_col='id')
     
 #     print(orid_df.head(),pro_df.head())

@@ -106,7 +106,22 @@ def wash_oil_gas_process(x,attrs):
 
     return contents
 
+def wash_jpt_process(x,attrs):
+    '''
+    '''
+    contents = []
+    if x is not None:
+        soup = BeautifulSoup(x, 'lxml')
+        ancestor = soup.find('div', attrs=attrs)
+        # if ancestor is not None:
+        for desc in ancestor.descendants:
+            if desc.name == 'img' and desc.has_attr('src') and re.search(r'/media',desc.attrs['src']):
+                desc.attrs['src'] =  'https://pubs.spe.org'+ desc.attrs['src']
+                contents.append(desc)
+            elif desc.name == 'p' and not desc.has_attr('class'):
+                contents.append(desc.text.replace(u'\xa0', u''))
 
+    return contents
 
 def extract_img_links(x):
     '''extract img_links from content
@@ -130,9 +145,9 @@ def extract_img_links(x):
 #             if ele.name == 'img' and ele.has_attr('src') :
 #                 img_link = ele.attrs['src']
 #                 if re.match(r'^/', img_link):
-#                     img_links.append(('https://www.hartenergy.com'+str(img_link), ele.attrs['alt'] if ele.attrs['alt'] else None))
-#
-#     return img_links
+# #                     img_links.append(('https://www.hartenergy.com'+str(img_link), ele.attrs['alt'] if ele.attrs['alt'] else None))
+# #
+# #     return img_links
 
 def read_xlsx(file):
     '''read all the categories sheet for keywords searching
