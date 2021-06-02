@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy import Column,String,Text,Integer,DateTime
+from sqlalchemy import Column, String, Text, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy.orm import sessionmaker
@@ -12,10 +12,9 @@ def db_connect():
     Performs database connection using database settings from settings.py.
     Returns sqlalchemy engine instance
     """
-    uri = 'mysql+pymysql://root:jinzheng1706@139.198.191.224:3308/news_oil'
+    uri = 'mysql+pymysql://root:jinzheng1706@localhost:3308/news_oil'
     # print('uri',get_project_settings().get("SQL_CONNECT_STRING"))
     return create_engine(uri)
-
 
 
 class OeNewsPro(Base):
@@ -35,7 +34,7 @@ class OeNewsPro(Base):
     img_urls_new = Column(String(5024))
     format_crawl_time = Column(DateTime)
     regions_merged = Column(String(255))
-    country_merged = Column(String(255))
+    country_merged = Column(String(1024))
     company_keyword = Column(String(1024))
     country_matched_by_company_merged = Column(String(255))
     subcategory_merged = Column(String(255))
@@ -70,6 +69,7 @@ class WorldOilPro(Base):
     field_keyword = Column(String(255))
     storage_keyword = Column(String(255))
     mark_note_by_url = Column(String(32))
+
 
 class CnpcNewsPro(Base):
     __tablename__ = 'cnpc_news_pro'
@@ -124,6 +124,7 @@ class HartEnergyPro(Base):
     storage_keyword = Column(String(255))
     mark_note_by_url = Column(String(32))
 
+
 class OilFieldTech(Base):
     __tablename__ = 'oilfield_tech_pro'
 
@@ -149,6 +150,7 @@ class OilFieldTech(Base):
     field_keyword = Column(String(255))
     storage_keyword = Column(String(255))
     mark_note_by_url = Column(String(32))
+
 
 class OilAndGas(Base):
     __tablename__ = 'oil_and_gas_pro'
@@ -203,6 +205,7 @@ class InEnStorage(Base):
     storage_keyword = Column(String(255))
     mark_note_by_url = Column(String(32))
 
+
 class JptLatestPro(Base):
     __tablename__ = 'jpt_latest_pro'
 
@@ -212,6 +215,518 @@ class JptLatestPro(Base):
     title = Column(String(255))
     abstracts = Column(Text)
     preview_img_link = Column(String(255))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class EnergyVoicePro(Base):
+    __tablename__ = 'energy_voice_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(2048))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class GulfOilGasPro(Base):
+    __tablename__ = 'gulf_oil_gas_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class EnergyPediaPro(Base):
+    __tablename__ = 'energy_pedia_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class UpStreamPro(Base):
+    __tablename__ = 'up_stream_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class OilPricePro(Base):
+    __tablename__ = 'oil_price_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class InenTechPro(Base):
+    __tablename__ = 'inen_tech_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class InenNewEnergyPro(Base):
+    __tablename__ = 'inen_newenergy_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(2048))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class DrillContractorPro(Base):
+    __tablename__ = 'drill_contractor_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class RogTechPro(Base):
+    __tablename__ = 'rog_tech_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class NaturalGasPro(Base):
+    __tablename__ = 'natural_gas_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class RigZonePro(Base):
+    __tablename__ = 'rig_zone_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class OffshoreTechPro(Base):
+    __tablename__ = 'offshore_tech_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class EnergyYearPro(Base):
+    __tablename__ = 'energy_year_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class EnergyChinaPro(Base):
+    __tablename__ = 'energy_china_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class ChinaFivePro(Base):
+    __tablename__ = 'china_five_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class OffshoreEnergyPro(Base):
+    __tablename__ = 'offshore_energy_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class JwnEnergyPro(Base):
+    __tablename__ = 'jwn_energy_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class IranOilGasPro(Base):
+    __tablename__ = 'iran_oilgas_pro'
+
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class NengYuanPro(Base):
+    __tablename__ = 'neng_yuan_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
     url = Column(String(1024))
     format_pub_time = Column(DateTime)
     author = Column(String(255))
@@ -257,6 +772,421 @@ class TempTable(Base):
     mark_note_by_url = Column(String(32))
 
 
-    
+class WoodMacPro(Base):
+    __tablename__ = 'wood_mac_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class RystadEnergyPro(Base):
+    __tablename__ = 'rystad_energy_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WestwoodEnergyPro(Base):
+    __tablename__ = 'westwood_energy_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class IeaNewsPro(Base):
+    __tablename__ = 'iea_news_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinPro(Base):
+    __tablename__ = 'weixin_data_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(Text)
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinOilCrossPro(Base):
+    __tablename__ = 'weixin_oil_cross_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinLngConPro(Base):
+    __tablename__ = 'weixin_lng_con_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(2048))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinCnpcNewsPro(Base):
+    __tablename__ = 'weixin_cnpc_news_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(2048))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinEnergyExpressPro(Base):
+    __tablename__ = 'weixin_energy_express_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinPetroTradingPro(Base):
+    __tablename__ = 'weixin_petro_trading_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinHaiBeiPro(Base):
+    __tablename__ = 'weixin_hai_bei_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinOffshoreEnergyPro(Base):
+    __tablename__ = 'weixin_offshore_energy_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinHaiBoPro(Base):
+    __tablename__ = 'weixin_hai_bo_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinCRSLPro(Base):
+    __tablename__ = 'weixin_crsl_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinOilCubicPro(Base):
+    __tablename__ = 'weixin_oil_cubic_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(2048))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
+class WeiXinOilLinkPro(Base):
+    __tablename__ = 'weixin_oil_link_pro'
+    id = Column(Integer, primary_key=True)
+    orig_id = Column(Integer)
+    source = Column(String(255))
+    title = Column(String(255))
+    abstracts = Column(Text)
+    preview_img_link = Column(String(2048))
+    url = Column(String(1024))
+    format_pub_time = Column(DateTime)
+    author = Column(String(255))
+    new_content = Column(Text)
+    categories = Column(String(255))
+    img_urls_new = Column(String(5024))
+    format_crawl_time = Column(DateTime)
+    regions_merged = Column(String(255))
+    country_merged = Column(String(255))
+    company_keyword = Column(String(1024))
+    country_matched_by_company_merged = Column(String(255))
+    subcategory_merged = Column(String(255))
+    topic_merged = Column(String(255))
+    field_keyword = Column(String(255))
+    storage_keyword = Column(String(255))
+    mark_note_by_url = Column(String(32))
+
+
 def create_table(engine):
     Base.metadata.create_all(engine)

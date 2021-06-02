@@ -1,29 +1,56 @@
 import pandas as pd
 import re
 import time
+import warnings
+
+warnings.simplefilter(action='ignore', category=FutureWarning)
+import datetime as dt
 from datetime import datetime
-from models import db_connect,create_table,TempTable
+from bs4 import BeautifulSoup
+from models import db_connect, create_table, TempTable
 from check_pro import return_no_processed_df
-from utils import wash_process,wash_hart_energy_process,wash_world_oil,wash_oil_gas_process,\
-    wash_jpt_process,extract_img_links,read_xlsx, gen_keywords_pair, match_keyword, match_country_region, \
-    chopoff, match_company,rematch_keywords,match_topic,match_storage,get_mark_urls,mark_title,add_same_key,\
-    remove_intell_topic,mark_cnpc_hot,get_hart_energy_hot,get_world_oil_hot,get_oil_gas_hot
-
-
+from utils import wash_process, wash_hart_energy_process, wash_world_oil, wash_oil_gas_process, wash_jpt_process \
+    , wash_energy_voice, wash_gulf_oilgas, wash_energy_pedia, wash_upstream, wash_oil_price, wash_inen_tech, \
+    upstream_preview_img, wash_drill_contractor, wash_natural_gas, wash_rig_zone, concate_img_content, \
+    wash_offshore_tech, change_src_img, concate_offshore_img_content, wash_energy_year, wash_energy_china, \
+    wash_china_five, wash_offshore_energy, wash_jwn_energy, wash_iran_oilgas, wash_nengyuan, \
+    wash_woodmac, wash_rystadenergy, wash_westwood, wash_ieanews, upstream_main_img, extract_img_links, read_xlsx, \
+    gen_keywords_pair, match_keyword, match_country_region, \
+    chopoff, match_company, rematch_keywords, match_topic, match_storage, get_mark_urls, mark_title, add_same_key, \
+    remove_intell_topic, mark_cnpc_hot, get_hart_energy_hot, get_world_oil_hot, get_oil_gas_hot, wash_weixin, \
+    format_weixin_pubtime \
+    , extract_weixin_img_links, pormat_cnpc_news_time, change_img_links
 
 if __name__ == '__main__':
 
     start_time = time.time()
-    table_name = ['news_oil_oe','world_oil','hart_energy','cnpc_news','oilfield_tech','in_en_storage'
-                  ,'jpt_latest']
-    table_name_pro = ['news_oil_oe_pro','world_oil_pro','hart_energy_pro','cnpc_news_pro',
-                      'oilfield_tech_pro','in_en_storage_pro','jpt_latest_pro']
+    table_name = ['news_oil_oe', 'world_oil', 'hart_energy', 'cnpc_news', 'oilfield_tech', \
+                  'oil_and_gas', 'in_en_storage', 'jpt_latest', 'energy_voice', 'gulf_oil_gas', 'energy_pedia', \
+                  'up_stream', 'oil_price', 'inen_tech', 'inen_newenergy', 'drill_contractor', 'rog_tech',
+                  'natural_gas', \
+                  'rig_zone', 'offshore_tech', 'energy_year', 'energy_china', 'china_five', 'offshore_energy', \
+                  'jwn_energy', 'iran_oil_gas', 'neng_yuan', 'wood_mac', 'rystad_energy', 'westwood_energy', 'iea_news',
+                  'weixin_data', \
+                  'weixin_oil_cross', 'weixin_lng_con', 'weixin_cnpc_news', 'weixin_energy_express',
+                  'weixin_petro_trading', \
+                  'weixin_hai_bei', 'weixin_offshore_energy', 'weixin_hai_bo', 'weixin_crsl', 'weixin_oil_cubic',
+                  'weixin_oil_link']
+    table_name_pro = ['news_oil_oe_pro', 'world_oil_pro', 'hart_energy_pro', 'cnpc_news_pro', 'oilfield_tech_pro', \
+                      'oil_and_gas_pro', 'in_en_storage_pro', 'jpt_latest_pro', 'energy_voice_pro', 'gulf_oil_gas_pro', \
+                      'energy_pedia_pro', 'up_stream_pro', 'oil_price_pro', 'inen_tech_pro', 'inen_newenergy_pro', \
+                      'drill_contractor_pro', 'rog_tech_pro', 'natural_gas_pro', 'rig_zone_pro', 'offshore_tech_pro', \
+                      'energy_year_pro', 'energy_china_pro', 'china_five_pro', 'offshore_energy_pro', 'jwn_energy_pro', \
+                      'iran_oilgas_pro', 'neng_yuan_pro', 'wood_mac_pro', 'rystad_energy_pro', 'westwood_energy_pro',
+                      'iea_news_pro', 'weixin_data_pro', 'weixin_oil_cross_pro', 'weixin_lng_con_pro',
+                      'weixin_cnpc_news_pro', 'weixin_energy_express_pro', 'weixin_petro_trading_pro', \
+                      'weixin_hai_bei_pro', 'weixin_offshore_energy_pro', 'weixin_hai_bo_pro', 'weixin_crsl_pro',
+                      'weixin_oil_cubic_pro', 'weixin_oil_link_pro']
     engine = db_connect()
     create_table(engine)
     cate_file = 'input_data/categories_list.xlsx'
     df_dicts = read_xlsx(cate_file)
 
-    #==================== generate all the keyword and category pair==================================
+    # ==================== generate all the keyword and category pair==================================
     # country section
     df_dicts['country'].columns = ['region', 'country', 'key_words_chinese', 'key_words_english']  ## rename cols
     country_keywords_pair = gen_keywords_pair(df_dicts['country'], 2, [3, 4])
@@ -151,8 +178,8 @@ if __name__ == '__main__':
     keyword = df_field['merged_keywords'].values
     for fie, key in zip(field, keyword):
         field_keyword[fie] = key
-    field_keyword['MESSLAH'] = ['MESSLAH', 'MESSLA'] ## some correction of data
-    field_keyword['AUGILA-NAFOORA'] = ['AUGILA-NAFOORA','AWJILAH-NAFURAH','102-D','051-A']
+    field_keyword['MESSLAH'] = ['MESSLAH', 'MESSLA']  ## some correction of data
+    field_keyword['AUGILA-NAFOORA'] = ['AUGILA-NAFOORA', 'AWJILAH-NAFURAH', '102-D', '051-A']
     print(field_keyword['AUGILA-NAFOORA'])
     ## storage section
     df_dicts['storage'].columns = ['country', 'storage', 'keyword']
@@ -181,14 +208,30 @@ if __name__ == '__main__':
     # mark_urls = get_mark_urls()
 
     # ==================== reach the process section for each category==================================
-    div_class_name = {'oe': {'class':'article'},
-                      'world_oil': {'id':'news'},
-                        'cnpc_news':{'class':'sj-main'},
-                        'hart_energy':{'class':'article-content-wrapper'},
-                        'oilfield_tech':{'itemprop':"articleBody"},
-                        'oil_and_gas':{'class': 'entry'},
-                        'in_en_storage':{'id':'content'},
-                        'jpt_latest_pro':{'class':'articleBodyText'}
+    div_class_name = {'oe': {'class': 'article'},
+                      'world_oil': {'id': 'news'},
+                      # 'cnpc_news':{'class':'sj-main'},
+                      'cnpc_news': {'id': 'contentzoom'},
+                      'hart_energy': {'class': 'article-content-wrapper'},
+                      'oilfield_tech': {'itemprop': "articleBody"},
+                      'oil_and_gas': {'class': 'entry'},
+                      'in_en_storage': {'id': 'content'},
+                      'jpt_latest': {'class': 'articleBodyText'},
+                      'energy_voice': {'class': 'entry-content'},
+                      'gulf_oil_gas': {'class': 'newsbodytext'},
+                      'energy_pedia': {'class': 'articlepreview'},
+                      'up_stream': {'class': 'article-body'},
+                      'oil_price': {'class': 'singleArticle__content'},
+                      'inen_tech': {'id': 'content'},
+                      'inen_newenergy': {'id': 'content'},
+                      'natural_gas': {'class': 'article-body'},
+                      'rig_zone': {'class': "divArticleText"},
+                      'offshore_tech': {'class': 'c-post-single__content'},
+                      'energy_year': {'class': "page-interviews"},
+                      'energy_china': {'class': 'mainBody'},
+                      'china_five': {'id': 'showcontent'},
+                      'offshore_energy': {'class': 'wp-content'}
+
                       }
 
     for table_pair in zip(table_name, table_name_pro):
@@ -197,44 +240,57 @@ if __name__ == '__main__':
         if len(pre_data) == 0:  ## no dataframe needed to be processed
             continue
         else:
-            raw_df = pre_data.iloc[:10] ##make tsouhe dataframe name consistent
+            if re.search(r'offshore_energy', table_pair[0]):
+
+                raw_df = pre_data.iloc[:1000]  ##make tsouhe dataframe name consistent
+            else:
+                raw_df = pre_data
             ## format publication time and the new content as well as source
-            if re.search(r'^news',table_pair[0]):
+            if table_pair[0] == 'news_oil_oe':
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x,div_class_name['oe']))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['oe']))
                 raw_df['source'] = 'https://www.oedigital.com'
-            if re.search(r'cnpc',table_pair[0]) :
-                raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x)  \
-                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+            if table_pair[0] == 'cnpc_news':
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: pormat_cnpc_news_time(x) if x else None)
+                # .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                # except ValueError:
+                #    raw_df['format_pub_time'] = raw_df['pub_time'] \
+                #    .apply(lambda x: datetime.strptime(x, "%m/%d").strftime('%Y/%m/%d') if x is not None else x)  \
+                #    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
                 raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['cnpc_news']))
                 raw_df['source'] = 'http://news.cnpc.com.cn'
-            if re.search(r'world_oil',table_pair[0]):
+            if re.search(r'world_oil', table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
-                    .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d') if x is not None and len(
+                    x) > 4 else None) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_world_oil(x,div_class_name['world_oil']))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_world_oil(x, div_class_name['world_oil']
+                                                                                         ) if x is not None else x)
                 raw_df['source'] = 'https://www.worldoil.com/'
 
-            if re.search(r'hart',table_pair[0]):
+            if re.search(r'hart', table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_hart_energy_process(x,div_class_name['hart_energy'])
-                                                                )
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_hart_energy_process(x, div_class_name['hart_energy'])
+                    )
                 raw_df['source'] = 'https://www.hartenergy.com'
                 # r['abstracts'] = df['title']
 
-            if re.search(r'oilfield_tech',table_pair[0]):
-                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x:x.replace(' ','-').replace(',','') if x else x)\
-                    .apply(lambda x: datetime.strptime(x, '%A-%d-%B-%Y-%H:%S').strftime('%Y/%m/%d %H:%S') if x is not None else x) \
+            if re.search(r'oilfield_tech', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(
+                    lambda x: x.replace(' ', '-').replace(',', '') if x else x) \
+                    .apply(lambda x: datetime.strptime(x, '%A-%d-%B-%Y-%H:%S').strftime(
+                    '%Y/%m/%d %H:%S') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d %H:%S") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['oilfield_tech']))
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_process(x, div_class_name['oilfield_tech']))
                 raw_df['source'] = 'https://www.oilfieldtechonology.com/'
 
-            if re.search(r'oil_and_gas',table_pair[0]):
+            if re.search(r'oil_and_gas', table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
@@ -246,29 +302,219 @@ if __name__ == '__main__':
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_process(x, div_class_name['in_en_storage'])
-                                                                if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_process(x, div_class_name['in_en_storage']))
                 raw_df['source'] = 'https://www.in-en.com/tag/储气库'
-            if re.search(r'jpt',table_pair[0]):
+            if re.search(r'jpt', table_pair[0]):
+                # raw_df['format_pub_time'] = raw_df['pub_time'] \
+                #    .apply(lambda x: datetime.strptime(x, "%d %B %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                #    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                # raw_df['new_content'] = raw_df['content'].apply(
+                #    lambda x: wash_jpt_process(x, div_class_name['jpt_latest']) if x is not None else x)
+                # raw_df['source'] = 'https://pubs.spe.org/'
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%B %d, %Y'))
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: BeautifulSoup(x, 'lxml').find_all('p') if x else None)
+                for i in range(len(raw_df)):
+                    raw_df['new_content'].values[i] = raw_df['new_content'].values[i]. \
+                        insert(0, raw_df['pre_title'].values[i])
+                raw_df['pre_title'] = None
+                raw_df['source'] = 'https://jpt.spe.org/latest-news'
+            if re.search(r'energy_voice', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%d/%m/%Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_energy_voice(x, div_class_name['energy_voice']) if x is not None else x)
+                raw_df['source'] = 'https://www.energyvoice.com/oilandgas/'
+            if re.search(r'gulf_oil_gas', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%m/%d/%Y')) \
+                    .apply(lambda x: x if datetime.now(dt.timezone.utc).date() > x \
+                    else datetime.now(dt.timezone.utc).date()) \
+                    .apply(lambda x: x.strftime('%Y/%m/%d') if x is not None else None) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_gulf_oilgas(x, div_class_name['gulf_oil_gas']) if x is not None else x)
+                raw_df['source'] = 'https://www.gulfoilandgas.com'
+            if re.search(r'energy_pedia', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, "%d %b %y")) \
+                    .apply(lambda x: x if datetime.now(dt.timezone.utc).date() > x \
+                    else datetime.now(dt.timezone.utc).date())
+                ## .apply(lambda x: datetime.strptime(x, "%d %b %y").strftime
+                ## ('%Y/%m/%d') if x is not None  else None) \
+                ##.apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                # .apply(lambda x: datetime.strptime(x, "%d %b %y")) \
+                # .apply(lambda x: x if datetime.now(dt.timezone.utc).date()> x \
+                # else datetime.now(dt.timezone.utc).date())
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_energy_pedia(x, div_class_name['energy_pedia']) if x is not None else x)
+                raw_df['source'] = 'https://www.energy-pedia.com/'
+            if re.search(r'up_stream', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%d %B %Y %H:%M') \
+                    if x is not None else x)
+                raw_df['new_content'] = raw_df['content'] \
+                    .apply(lambda x: wash_upstream(x, div_class_name['up_stream']) if x is not None else x)
+                raw_df.dropna(axis=0, subset=['new_content'], inplace=True)
+
+                main_img = raw_df['preview_img_link'].apply(lambda x: upstream_main_img(x) if x is not None else x)
+                # to avoid main_img is none then produce none content
+                for i in range(len(main_img)):
+                    if main_img.values[i] and len(main_img.values[i]) >= 1:
+                        raw_df['new_content'].values[i] = main_img.values[i] + raw_df['new_content'].values[i]
+                raw_df['source'] = 'http://upstreamonline.com'
+            if re.search(r'oil_price', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%b %d, %Y %H:%M') \
+                    if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_oil_price(x, div_class_name['oil_price']) if x is not None else x)
+                raw_df['source'] = 'https://oilprice.com/'
+
+            if re.search(r'inen_tech', table_pair[0]) or re.search(r'inen_newenergy', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%Y-%m-%d").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(
+                    lambda x: wash_inen_tech(x, div_class_name['inen_tech']))
+                raw_df['source'] = 'https://oil.in-en.com/'
+            if re.search(r'drill_contractor', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%b %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_drill_contractor(x))
+                raw_df['source'] = 'https://www.drillingcontractor.org'
+            if re.search(r'rog_tech', table_pair[0]):
                 raw_df['format_pub_time'] = raw_df['pub_time'] \
                     .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
                     .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
-                raw_df['new_content'] = raw_df['content'].apply(
-                    lambda x: wash_jpt_process(x, div_class_name['jpt_latest_pro']) if x is not None else x)
-                raw_df['source'] = 'https://pubs.spe.org/'
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_drill_contractor(x) if x else x)
+                raw_df['source'] = 'https://rogtecmagazine.com'
+            if re.search(r'natural_gas', table_pair[0]):
+                raw_df['new_content'] = raw_df['content'] \
+                    .apply(lambda x: wash_natural_gas(x, div_class_name['natural_gas']) if x else x)
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, "%B %d, %Y").strftime('%Y/%m/%d') if x is not None else x) \
+                    .apply(lambda x: datetime.strptime(x, "%Y/%m/%d") if x is not None else x)
+                raw_df['source'] = 'https://www.naturalgasintel.com'
+            if re.search(r'rig_zone', table_pair[0]):
+                raw_df['preview_img_link'] = raw_df['preview_img_link'] \
+                    .apply(lambda x: BeautifulSoup(x, 'lxml') if x else None).apply(lambda x: x.img if x else None)
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, '%A, %B %d, %Y') if x else x)
+                raw_df['new_content'] = raw_df['content'] \
+                    .apply(lambda x: wash_rig_zone(x, div_class_name['rig_zone']))
+                concate_img_content(raw_df)
+                raw_df['preview_img_link'] = None
+                raw_df['source'] = 'https://www.rigzone.com/news/'
+
+            if table_pair[0] == 'offshore_tech':
+                raw_df['new_content'] = raw_df['content']. \
+                    apply(lambda x: wash_offshore_tech(x, {'class': 'c-post-single__content'}))
+                raw_df['img_content'] = raw_df['categories'].apply(lambda x: change_src_img(x) if x else None)
+                concate_offshore_img_content(raw_df)
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%d %b %Y'))
+                raw_df['categories'] = None
+                raw_df['author'] = None
+                raw_df['source'] = 'https://www.offshore-technology.com/latest-news'
+            if re.search(r'energy_year', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time']. \
+                    apply(lambda x: datetime.strptime(x.replace('-', '').strip(), '%B %d, %Y'))
+                raw_df['new_content'] = raw_df['content'] \
+                    .apply(lambda x: wash_energy_year(x, div_class_name['energy_year']))
+                raw_df['source'] = 'https://theenergyyear.com/news/'
+
+            if re.search(r'energy_china', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_energy_china(x, {'class': 'mainBody'}))
+                raw_df['source'] = 'http://cn.energychinaforum.com/news'
+
+            if re.search(r'china_five', table_pair[0]):
+                raw_df['new_content'] = raw_df['content']. \
+                    apply(lambda x: wash_china_five(x, {'id': 'showcontent'}))
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+                raw_df['source'] = 'https://www.china5e.com/news'
+
+            if table_pair[0] == 'offshore_energy':
+                raw_df['new_content'] = raw_df['content']. \
+                    apply(lambda x: wash_offshore_energy(x, {'class': 'wp-content'}))
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: ''.join(x.split(',')[:2])) \
+                    .apply(lambda x: datetime.strptime(x, '%B %d %Y'))
+
+                raw_df['source'] = 'https://www.offshore-energy.biz/news/'
+
+            if re.search(r'jwn_energy', table_pair[0]):
+                raw_df['preview_img_link'] = 'https://www.jwnenergy.com' + raw_df['preview_img_link']
+                raw_df['new_content'] = raw_df['content']. \
+                    apply(lambda x: wash_jwn_energy(x, {'itemprop': 'articleBody'}) if x else x)
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: ''.join(x.split(' ')[:4])[:-1] if x else x) \
+                    .apply(lambda x: datetime.strptime(x, '%A,%B%d,%Y') if x else x)
+                raw_df['source'] = 'https://www.jwnenergy.com'
+
+            if re.search(r'iran_oil_gas', table_pair[0]):
+                raw_df['new_content'] = raw_df['content']. \
+                    apply(lambda x: wash_iran_oilgas(x, attrs={'id': 'newsbody'}) if x else x)
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%d %B, %Y'))
+                raw_df['source'] = 'http://www.iranoilgas.com/default'
             ## new image url section
             # if re.search(r'hart',table_pair[0]):
             #     raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_hart_energy_img_links(x))
             # else:
-            raw_df['img_urls_new'] = raw_df['new_content'].apply(lambda x: extract_img_links(x) if x is not None else x)
+            if re.search(r'neng_yuan', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_nengyuan(x) if x else None)
+                raw_df['source'] = 'http://www.china-nengyuan.com/'
+            if re.search(r'wood_mac', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, '%d %B %Y'))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_woodmac(x) if x else None)
+                raw_df['source'] = 'https://www.woodmac.com/'
+
+            if re.search(r'rystad_energy', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'].apply(lambda x: datetime.strptime(x, '%Y-%m-%d'))
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_rystadenergy(x))
+                raw_df['source'] = 'https://www.rystadenergy.com/'
+
+            if re.search(r'westwood_energy', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, '%B %d, %Y') if x else None)
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_westwood(x) if x else None)
+                raw_df['source'] = 'https://www.westwoodenergy.com'
+
+            if re.search(r'iea_news', table_pair[0]):
+                raw_df['format_pub_time'] = raw_df['pub_time'] \
+                    .apply(lambda x: datetime.strptime(x, '%d %B %Y') if x else None)
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_ieanews(x) if x else None)
+                raw_df['source'] = 'https://www.iea.org/'
+
+            if re.match(r'weixin', table_pair[0]):
+                raw_df['new_content'] = raw_df['content'].apply(lambda x: wash_weixin(x) if x else None)
+                raw_df['source'] = raw_df['author']
+                raw_df['format_pub_time'] = format_weixin_pubtime(raw_df)
+
+                change_img_links(raw_df)
+                # except:
+                #    pass
+
+            if re.search(r'up_stream', table_pair[0]):
+
+                raw_df['img_urls_new'] = raw_df['preview_img_link'].apply(
+                    lambda x: upstream_main_img(x) if x is not None else x)
+                raw_df['preview_img_link'] = raw_df['preview_img_link'].apply(lambda x: upstream_preview_img(x))
+            elif re.search(r'weixin', table_pair[0]):
+                raw_df['img_urls_new'] = raw_df['new_content'].apply(
+                    lambda x: extract_weixin_img_links(x) if x is not None else x)
+            else:
+                raw_df['img_urls_new'] = raw_df['new_content'].apply(
+                    lambda x: extract_img_links(x) if x is not None else x)
             ## crawl time formating
             raw_df['format_crawl_time'] = raw_df['crawl_time'].apply(lambda x: x.strip()[:10]) \
                 .apply(lambda x: datetime.strptime(x, "%m/%d/%Y").strftime('%Y/%m/%d')) \
                 .apply(lambda x: datetime.strptime(x, "%Y/%m/%d"))
-            df = raw_df[['id', 'author','pre_title','categories', 'preview_img_link',
-                             'title', 'url', 'new_content', 'img_urls_new',
-                             'format_pub_time', 'format_crawl_time']]
-
+            df = raw_df[['id', 'author', 'pre_title', 'categories', 'preview_img_link',
+                         'title', 'url', 'new_content', 'img_urls_new',
+                         'format_pub_time', 'format_crawl_time']]
 
             ## country keyword section
             df['country_keyword'] = df['new_content'].astype('str'). \
@@ -309,21 +555,48 @@ if __name__ == '__main__':
             if re.search(r'^news', table_pair[0]):
                 mark_urls = get_mark_urls()
                 df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
-            elif re.search(r'cnpc', table_pair[0]) :
-                mark_titles = mark_cnpc_hot()
-                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
-            elif re.search(r'world_oil',table_pair[0]):
+            # elif re.search(r'cnpc', table_pair[0]) :
+            #   mark_titles = mark_cnpc_hot()
+            #    df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
+            elif re.search(r'world_oil', table_pair[0]):
                 mark_urls = get_world_oil_hot()
                 df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
-            elif re.search(r'hart',table_pair[0]):
+            elif re.search(r'hart', table_pair[0]):
                 mark_urls = get_hart_energy_hot()
                 df['mark_note_by_url'] = df['url'].apply(lambda x: mark_title(x, mark_urls))
-            elif re.search(r'oilfield_tech',table_pair[1]):
+            elif re.search(r'oilfield_tech', table_pair[1]):
                 df['mark_note_by_url'] = None
-            elif re.search(r'oil_and_gas',table_pair[1]):
+            elif re.search(r'oil_and_gas', table_pair[1]):
                 mark_titles = get_oil_gas_hot()
-                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles))
-            elif re.search(r'in_en_storage',table_pair[1]) or re.search(r'jpt_latest_pro',table_pair[1]):
+                df['mark_note_by_url'] = df['title'].apply(lambda x: mark_title(x, mark_titles) if x is not None else x)
+            elif re.search(r'in_en_storage', table_pair[1]) \
+                    or re.search(r'jpt_latest_pro', table_pair[1]) \
+                    or re.search(r'energy_voice', table_pair[1]) \
+                    or re.search(r'gulf_oil_gas', table_pair[1]) \
+                    or re.search(r'energy_pedia', table_pair[1]) \
+                    or re.search(r'up_stream', table_pair[1]) \
+                    or re.search(r'oil_price', table_pair[1]) \
+                    or re.search(r'inen_tech', table_pair[1]) \
+                    or re.search(r'inen_newenergy', table_pair[1]) \
+                    or re.search(r'drill_contractor', table_pair[1]) \
+                    or re.search(r'rog_tech', table_pair[1]) \
+                    or re.search(r'natural_gas', table_pair[1]) \
+                    or re.search(r'rig_zone', table_pair[1]) \
+                    or re.search(r'offshore_tech', table_pair[1]) \
+                    or re.search(r'energy_year', table_pair[1]) \
+                    or re.search(r'energy_china', table_pair[1]) \
+                    or re.search(r'china_five', table_pair[1]) \
+                    or re.search(r'offshore_energy', table_pair[1]) \
+                    or re.search(r'jwn_energy', table_pair[1]) \
+                    or re.search(r'iran_oilgas', table_pair[1]) \
+                    or re.search(r'neng_yuan', table_pair[1]) \
+                    or re.search(r'wood_mac', table_pair[1]) \
+                    or re.search(r'rystad_energy', table_pair[1]) \
+                    or re.search(r'westwood_energy', table_pair[1]) \
+                    or re.search(r'iea_news', table_pair[1]) \
+                    or re.search(r'cnpc', table_pair[1]) \
+                    or re.match(r'weixin', table_pair[1]):
+                # or re.search(r'wood_mac',table_pair[1]):
                 df['mark_note_by_url'] = None
             # print('reach to post process of data')
             ##post processgit
@@ -337,18 +610,21 @@ if __name__ == '__main__':
             df['country_matched_by_company_merged'] = df['country_matched_by_company'].apply(lambda x: add_same_key(x))
 
             df['new_content'] = raw_df['new_content'] \
-                .apply(lambda x: '\n'.join([str(ele).strip() for ele in x]) )
+                .apply(
+                lambda x: '\n'.join([str(ele).strip() for ele in x]) if x is not None and isinstance(x, list) else str(
+                    x))
 
             df['topic_merged'] = df['topic_merged'].astype('str').apply(lambda x: remove_intell_topic(x))
             df['topic_merged'] = df['topic_merged'].astype('str')
-            spend_time = round(time.time() -start_time,1)
-            print('spend time',spend_time,' to process data',df.info())
+            spend_time = round(time.time() - start_time, 1)
+            print('spend time', spend_time, ' to process data', df.info(), table_pair[0])
 
             df['source'] = raw_df['source']
 
             ##abastracts sections
             # if re.search(r'cnpc', table_pair[0]) or re.search(r'^news', table_pair[0]):
-            df['abstracts'] = df['new_content'].apply(lambda x:re.sub(r'<img .+>','',x)[:340])
+            df['abstracts'] = df['new_content'].apply(
+                lambda x: re.sub(r'<img .+>', '', str(x))[:340] if x is not None else re.sub(r'[]', '', x))
             # else:
             #     df['abstracts'] = df['pre_title']
             ##cnpc author section
@@ -374,7 +650,7 @@ if __name__ == '__main__':
             result['storage_keyword'] = result['storage_keyword'].astype('str')
             result['mark_note_by_url'] = result['mark_note_by_url'].astype('str')
             # test = result[0:1].values
-
+            result.drop_duplicates(subset=['title'], inplace=True)
             # print(table_name_pro)
             ##update column of field_keyword
             # result.to_sql('temp_table', engine, if_exists='replace')
@@ -384,7 +660,10 @@ if __name__ == '__main__':
             # with engine.begin() as conn:
             #     conn.execute(sql)
             # try:
-            result.to_sql(table_pair[1],engine,if_exists='append',index=False,chunksize=1)
+            # print(result['source'].values[0])
+            # print(result['format_pub_time'].values[0],type(result['format_pub_time'].values[0]))
+            result.to_sql(table_pair[1], engine, if_exists='append', index=False, chunksize=1)
+            # print('processed ', table_pair[1])
             # except:
-            #     continue
-
+            #    print('table',' is not processed',table_pair[0])
+            #    continue
