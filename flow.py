@@ -26,24 +26,24 @@ if __name__ == '__main__':
     start_time = time.time()
     table_name = ['news_oil_oe', 'world_oil', 'hart_energy', 'cnpc_news', 'oilfield_tech', \
                   'oil_and_gas', 'in_en_storage', 'jpt_latest', 'energy_voice', 'gulf_oil_gas', 'energy_pedia', \
-                  'up_stream', 'oil_price', 'inen_tech', 'inen_newenergy', 'drill_contractor', 'rog_tech',
+                  'up_stream', 'oil_price', 'inen_tech', 'inen_newenergy', 'drill_contractor', 'rog_tech',\
                   'natural_gas', \
                   'rig_zone', 'offshore_tech', 'energy_year', 'energy_china', 'china_five', 'offshore_energy', \
                   'jwn_energy', 'iran_oil_gas', 'neng_yuan', 'wood_mac', 'rystad_energy', 'westwood_energy', 'iea_news',
                   'weixin_data', \
-                  'weixin_oil_cross', 'weixin_lng_con', 'weixin_cnpc_news', 'weixin_energy_express',
+                  'weixin_oil_cross', 'weixin_lng_con', 'weixin_cnpc_news', 'weixin_energy_express',\
                   'weixin_petro_trading', \
-                  'weixin_hai_bei', 'weixin_offshore_energy', 'weixin_hai_bo', 'weixin_crsl', 'weixin_oil_cubic',
+                  'weixin_hai_bei', 'weixin_offshore_energy', 'weixin_hai_bo', 'weixin_crsl', 'weixin_oil_cubic',\
                   'weixin_oil_link']
     table_name_pro = ['news_oil_oe_pro', 'world_oil_pro', 'hart_energy_pro', 'cnpc_news_pro', 'oilfield_tech_pro', \
                       'oil_and_gas_pro', 'in_en_storage_pro', 'jpt_latest_pro', 'energy_voice_pro', 'gulf_oil_gas_pro', \
                       'energy_pedia_pro', 'up_stream_pro', 'oil_price_pro', 'inen_tech_pro', 'inen_newenergy_pro', \
                       'drill_contractor_pro', 'rog_tech_pro', 'natural_gas_pro', 'rig_zone_pro', 'offshore_tech_pro', \
                       'energy_year_pro', 'energy_china_pro', 'china_five_pro', 'offshore_energy_pro', 'jwn_energy_pro', \
-                      'iran_oilgas_pro', 'neng_yuan_pro', 'wood_mac_pro', 'rystad_energy_pro', 'westwood_energy_pro',
-                      'iea_news_pro', 'weixin_data_pro', 'weixin_oil_cross_pro', 'weixin_lng_con_pro',
+                      'iran_oilgas_pro', 'neng_yuan_pro', 'wood_mac_pro', 'rystad_energy_pro', 'westwood_energy_pro',\
+                      'iea_news_pro', 'weixin_data_pro', 'weixin_oil_cross_pro', 'weixin_lng_con_pro',\
                       'weixin_cnpc_news_pro', 'weixin_energy_express_pro', 'weixin_petro_trading_pro', \
-                      'weixin_hai_bei_pro', 'weixin_offshore_energy_pro', 'weixin_hai_bo_pro', 'weixin_crsl_pro',
+                      'weixin_hai_bei_pro', 'weixin_offshore_energy_pro', 'weixin_hai_bo_pro', 'weixin_crsl_pro',\
                       'weixin_oil_cubic_pro', 'weixin_oil_link_pro']
     engine = db_connect()
     create_table(engine)
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     df_dicts['subcategory'].columns = ['subset', 'topic', 'chinese_keywords', 'english_keywords']
     df_cate = df_dicts['subcategory']
-    df_cate.iloc[28].topic = '其他能源类型'
+    df_cate.iloc[28].topic = '其他'
     df_cate.dropna(inplace=True)
     df_cate['english_keywords'] = df_cate['english_keywords'].astype('str').apply(lambda x: x.split('、'))
     df_cate['chinese_keywords'] = df_cate['chinese_keywords'].astype('str').apply(lambda x: x.split('、'))
